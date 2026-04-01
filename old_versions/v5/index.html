@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PDF Summary — AI Document Analysis</title>
+<meta name="description" content="Turn a stack of PDFs into structured briefings. Pick your own sources, get the overlapping facts, export to .docx and .pptx.">
+<meta name="theme-color" content="#0a0a0a">
+<link rel="canonical" href="https://pdfsummary.app">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#fcfbf9;--bg2:#f3f1ed;--bg3:#e8e5df;
+  --surface:#ffffff;
+  --border:#d8d4cc;--border-light:#ece9e2;
+  --text:#181612;--text-2:#4d463e;--text-3:#8a837a;--text-4:#b5aea5;
+  --blue:#2856c8;--blue-bg:#edf1fa;
+  --green:#1a7535;--green-bg:#edf7f0;
+  --violet:#6236b0;--violet-bg:#f2edfb;
+  --red:#b83025;--red-bg:#fceeed;
+  --orange:#b86b18;--orange-bg:#fdf4e8;
+  --font:'IBM Plex Sans',-apple-system,system-ui,sans-serif;
+  --mono:'IBM Plex Mono','SF Mono',monospace;
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
+body{font-family:var(--font);color:var(--text);background:var(--bg);line-height:1.65;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+
+.nav{position:sticky;top:0;z-index:100;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);background:rgba(252,251,249,.88);border-bottom:1px solid var(--border-light)}
+.nav-inner{max-width:1100px;margin:0 auto;padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px;font-family:var(--mono)}
+.nav-icon{width:20px;height:26px;border:1.5px solid var(--text);border-radius:2px;display:flex;flex-direction:column;justify-content:center;padding:3.5px;gap:2.5px}
+.nav-icon span{display:block;height:1.5px;background:var(--text);border-radius:1px}
+.nav-icon span:nth-child(3){background:var(--blue)}
+.nav-links{display:flex;align-items:center;gap:24px}
+.nav-links a{font-size:13px;font-weight:500;color:var(--text-3);transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+.nav-cta{background:var(--text);color:var(--bg);padding:8px 20px;border-radius:7px;font-size:13px;font-weight:600;transition:all .2s var(--ease)}
+.nav-cta:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.12)}
+
+.container{max-width:1100px;margin:0 auto;padding:0 32px}
+.section{padding:80px 0}
+.section+.section{border-top:1px solid var(--border-light)}
+.section-label{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:2px;color:var(--text-4);margin-bottom:16px;text-transform:uppercase}
+.section-title{font-size:clamp(24px,3.5vw,36px);font-weight:700;letter-spacing:-.8px;color:var(--text);margin-bottom:12px;line-height:1.2}
+.section-desc{font-size:15px;color:var(--text-2);max-width:600px;line-height:1.6}
+
+/* HERO */
+.hero{padding:72px 0 0}
+.hero-label{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--text-3);margin-bottom:20px;display:flex;align-items:center;gap:8px}
+.hero-label .dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s ease infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.hero h1{font-size:clamp(32px,5vw,56px);font-weight:700;letter-spacing:-2px;line-height:1.1;color:var(--text);margin-bottom:20px;max-width:680px}
+.hero-sub{font-size:17px;color:var(--text-2);max-width:580px;line-height:1.6;margin-bottom:36px}
+.hero-actions{display:flex;gap:12px;flex-wrap:wrap}
+.btn{padding:14px 30px;border-radius:10px;font-size:15px;font-weight:600;transition:all .25s var(--ease);border:none;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+.btn-dark{background:var(--text);color:var(--bg)}
+.btn-dark:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(0,0,0,.15)}
+.btn-outline{background:transparent;color:var(--text);border:1.5px solid var(--border)}
+.btn-outline:hover{border-color:var(--text-3)}
+
+/* VALUE PROPS */
+.value-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:48px}
+.value-card{padding:22px;background:var(--surface);border:1px solid var(--border-light);border-radius:10px}
+.value-num{font-family:var(--mono);font-size:26px;font-weight:700;color:var(--text);letter-spacing:-1px;margin-bottom:4px}
+.value-text{font-size:13px;color:var(--text-3);line-height:1.45}
+
+/* ARCHITECTURE */
+.arch-svg{width:100%;max-width:1040px;margin:32px auto 0;display:block}
+.stack-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:32px}
+.stack-item{padding:14px 16px;background:var(--surface);border:1px solid var(--border-light);border-radius:8px;display:flex;align-items:center;gap:10px}
+.stack-tag{font-family:var(--mono);font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;letter-spacing:.3px;flex-shrink:0}
+.stack-name{font-size:13px;font-weight:600;color:var(--text)}
+.stack-role{font-size:11px;color:var(--text-3)}
+
+/* FEATURES */
+.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:32px}
+.feature{padding:24px;background:var(--surface);border:1px solid var(--border-light);border-radius:12px}
+.feature-icon{font-size:22px;margin-bottom:10px}
+.feature-name{font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px}
+.feature-desc{font-size:13px;color:var(--text-2);line-height:1.5}
+
+/* PRICING */
+.pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:32px}
+.plan{padding:28px;border-radius:14px;background:var(--surface);border:1.5px solid var(--border-light);position:relative;transition:all .3s var(--ease)}
+.plan:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,0,0,.05)}
+.plan.pop{border-color:var(--blue)}
+.plan.feat{border-color:var(--violet)}
+.plan-badge{position:absolute;top:-10px;right:16px;padding:3px 10px;border-radius:5px;font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.5px;color:#fff}
+.plan-name{font-size:18px;font-weight:700;margin-bottom:2px}
+.plan-price{font-family:var(--mono);font-size:32px;font-weight:700;letter-spacing:-1px;margin-bottom:4px}
+.plan-price span{font-size:14px;font-weight:400;color:var(--text-3)}
+.plan-desc{font-family:var(--mono);font-size:11px;color:var(--text-3);margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--border-light)}
+.plan-features{list-style:none;margin-bottom:24px}
+.plan-features li{font-size:13px;color:var(--text-2);padding:5px 0 5px 20px;position:relative;line-height:1.4}
+.plan-features li::before{content:'→';position:absolute;left:0;color:var(--text-4);font-family:var(--mono);font-size:12px}
+.plan-cta{display:block;width:100%;padding:12px;border-radius:8px;text-align:center;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .2s var(--ease)}
+.plan-cta-light{background:var(--bg2);color:var(--text)}.plan-cta-light:hover{background:var(--bg3)}
+.plan-cta-blue{background:var(--blue);color:#fff}.plan-cta-blue:hover{opacity:.9}
+.plan-cta-violet{background:var(--violet);color:#fff}.plan-cta-violet:hover{opacity:.9}
+
+/* WHATSAPP */
+.wa-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;margin-top:32px}
+.wa-flow{display:flex;flex-direction:column;gap:10px}
+.wa-step{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;background:var(--surface);border:1px solid var(--border-light);border-radius:8px}
+.wa-step-num{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--blue);min-width:18px}
+.wa-step-text{font-size:13px;color:var(--text);line-height:1.4}
+.wa-step-text strong{font-weight:600}
+.wa-mockup{background:#e5ddd5;border-radius:14px;padding:18px;max-width:360px}
+.wa-msg{padding:10px 14px;border-radius:10px;max-width:90%;margin-bottom:6px;font-size:12px;line-height:1.45}
+.wa-msg.sent{background:#dcf8c6;margin-left:auto;border-bottom-right-radius:3px}
+.wa-msg.recv{background:#fff;border-bottom-left-radius:3px}
+.wa-msg .doc{display:flex;align-items:center;gap:6px;padding:5px 8px;background:rgba(0,0,0,.04);border-radius:5px;margin-bottom:4px;font-family:var(--mono);font-size:10px;color:var(--text-2)}
+.wa-msg .doc::before{content:'📄';font-size:13px}
+.wa-msg-time{font-size:9px;color:var(--text-4);text-align:right;margin-top:3px}
+
+.cta-banner{padding:64px 0}
+.cta-inner{padding:48px;border-radius:16px;background:var(--text);position:relative;overflow:hidden}
+.cta-inner::before{content:'';position:absolute;top:-40%;right:-15%;width:50%;height:180%;background:radial-gradient(circle,rgba(40,86,200,.18) 0%,transparent 65%);pointer-events:none}
+.cta-inner h2{font-size:clamp(22px,3vw,32px);font-weight:700;color:var(--bg);letter-spacing:-.8px;margin-bottom:8px;position:relative}
+.cta-inner p{font-size:15px;color:var(--text-4);margin-bottom:28px;position:relative}
+.cta-inner .btn-dark{background:var(--bg);color:var(--text)}
+
+.footer{padding:32px 0 48px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border-light)}
+.footer-left{font-family:var(--mono);font-size:12px;color:var(--text-4)}
+.footer-links{display:flex;gap:20px}
+.footer-links a{font-size:12px;color:var(--text-4);transition:color .2s}
+.footer-links a:hover{color:var(--text)}
+
+@media(max-width:900px){
+  .value-grid{grid-template-columns:repeat(2,1fr)}
+  .pricing-grid,.features-grid{grid-template-columns:1fr}
+  .wa-grid{grid-template-columns:1fr}
+  .nav-links .hide-m{display:none}
+  .hero{padding:48px 0 0}
+}
+@media(max-width:600px){
+  .container{padding:0 20px}
+  .nav-inner{padding:0 20px}
+  .footer{flex-direction:column;gap:12px;text-align:center}
+  .value-grid{grid-template-columns:1fr 1fr}
+  .stack-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="nav-logo">
+      <div class="nav-icon"><span></span><span></span><span></span><span></span></div>
+      pdf-summary
+    </a>
+    <div class="nav-links">
+      <a href="#architecture" class="hide-m">Architecture</a>
+      <a href="#features" class="hide-m">Features</a>
+      <a href="#pricing" class="hide-m">Pricing</a>
+      <a href="#pricing" class="nav-cta">Try It Free</a>
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+
+  <section class="hero">
+    <div class="hero-label"><span class="dot"></span> Free · No sign-up · Runs in your browser</div>
+    <h1>Turn a stack of PDFs into one structured briefing</h1>
+    <p class="hero-sub">Feed in documents from multiple sources. The AI extracts the overlapping facts, key themes, and action items — without the editorial framing of any single source. Export to .docx or .pptx.</p>
+    <div class="hero-actions">
+      <a href="#pricing" class="btn btn-dark">Try It Free</a>
+      <a href="#architecture" class="btn btn-outline">See the architecture ↓</a>
+    </div>
+    <div class="value-grid">
+      <div class="value-card">
+        <div class="value-num">5 → 1</div>
+        <div class="value-text">Multiple sources synthesized into a single briefing</div>
+      </div>
+      <div class="value-card">
+        <div class="value-num">~30s</div>
+        <div class="value-text">From PDF upload to structured output</div>
+      </div>
+      <div class="value-card">
+        <div class="value-num">.docx .pptx</div>
+        <div class="value-text">One-tap export, client-side generation</div>
+      </div>
+      <div class="value-card">
+        <div class="value-num">0 storage</div>
+        <div class="value-text">Files read locally, never stored on servers</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ARCHITECTURE -->
+  <section class="section" id="architecture">
+    <div class="section-label">Architecture</div>
+    <h2 class="section-title">How it works</h2>
+    <p class="section-desc">PDF is read client-side via FileReader. A Vercel serverless function appends the API key and proxies to the LLM. Structured JSON comes back. No file storage, no auth required for free tier.</p>
+
+    <div>
+      <svg class="arch-svg" viewBox="0 0 1040 340" xmlns="http://www.w3.org/2000/svg" fill="none">
+        <rect x="0" y="120" width="150" height="100" rx="10" fill="#fff" stroke="#d8d4cc" stroke-width="1.5"/>
+        <text x="75" y="156" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11" font-weight="600" fill="#181612">Browser /</text>
+        <text x="75" y="172" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11" font-weight="600" fill="#181612">Expo Go</text>
+        <text x="75" y="198" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="10" fill="#8a837a">FileReader API</text>
+        <text x="75" y="212" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="10" fill="#8a837a">reads PDF locally</text>
+
+        <rect x="220" y="120" width="150" height="100" rx="10" fill="#fff" stroke="#d8d4cc" stroke-width="1.5"/>
+        <text x="295" y="156" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11" font-weight="600" fill="#181612">Vercel</text>
+        <text x="295" y="172" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11" font-weight="600" fill="#181612">Serverless</text>
+        <text x="295" y="198" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="10" fill="#8a837a">Appends API key</text>
+        <text x="295" y="212" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="10" fill="#8a837a">Rate limits · CORS</text>
+
+        <rect x="440" y="80" width="180" height="70" rx="10" fill="#edf1fa" stroke="#2856c8" stroke-width="1.5"/>
+        <text x="530" y="110" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11" font-weight="600" fill="#2856c8">Gemini 2.5 Flash</text>
+        <text x="530" y="126" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="10" fill="#4d463e">Free tier · Fast</text>
+
+        <rect x="440" y="170" width="180" height="70" rx="10" fill="#f2edfb" stroke="#6236b0" stroke-width="1.5"/>
+        <text x="530" y="200" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11" font-weight="600" fill="#6236b0">Claude Sonnet</text>
+        <text x="530" y="216" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="10" fill="#4d463e">Pro / Premium · Deep</text>
+
+        <rect x="690" y="120" width="150" height="100" rx="10" fill="#fff" stroke="#d8d4cc" stroke-width="1.5"/>
+        <text x="765" y="156" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11" font-weight="600" fill="#181612">Structured</text>
+        <text x="765" y="172" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11" font-weight="600" fill="#181612">JSON</text>
+        <text x="765" y="198" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="10" fill="#8a837a">Themes · Metrics</text>
+        <text x="765" y="212" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="10" fill="#8a837a">Watch list · Summary</text>
+
+        <rect x="910" y="100" width="120" height="56" rx="8" fill="#edf7f0" stroke="#1a7535" stroke-width="1.5"/>
+        <text x="970" y="125" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11" font-weight="600" fill="#1a7535">.docx</text>
+        <text x="970" y="140" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="9" fill="#4d463e">Word export</text>
+
+        <rect x="910" y="176" width="120" height="56" rx="8" fill="#fdf4e8" stroke="#b86b18" stroke-width="1.5"/>
+        <text x="970" y="201" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11" font-weight="600" fill="#b86b18">.pptx</text>
+        <text x="970" y="216" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="9" fill="#4d463e">Slides export</text>
+
+        <rect x="440" y="272" width="180" height="56" rx="10" fill="#edf7f0" stroke="#1a7535" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <text x="530" y="296" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11" font-weight="600" fill="#1a7535">WhatsApp / OpenClaw</text>
+        <text x="530" y="312" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="10" fill="#8a837a">Premium · Webhook</text>
+
+        <line x1="150" y1="170" x2="220" y2="170" stroke="#d8d4cc" stroke-width="1.5" marker-end="url(#arr)"/>
+        <text x="185" y="162" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9" fill="#b5aea5">base64</text>
+        <line x1="370" y1="155" x2="440" y2="120" stroke="#d8d4cc" stroke-width="1.5" marker-end="url(#arr)"/>
+        <line x1="370" y1="185" x2="440" y2="200" stroke="#d8d4cc" stroke-width="1.5" marker-end="url(#arr)"/>
+        <line x1="620" y1="120" x2="690" y2="155" stroke="#d8d4cc" stroke-width="1.5" marker-end="url(#arr)"/>
+        <line x1="620" y1="200" x2="690" y2="185" stroke="#d8d4cc" stroke-width="1.5" marker-end="url(#arr)"/>
+        <text x="655" y="147" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9" fill="#b5aea5">JSON</text>
+        <line x1="840" y1="155" x2="910" y2="130" stroke="#d8d4cc" stroke-width="1.5" marker-end="url(#arr)"/>
+        <line x1="840" y1="185" x2="910" y2="200" stroke="#d8d4cc" stroke-width="1.5" marker-end="url(#arr)"/>
+        <line x1="370" y1="220" x2="370" y2="296" stroke="#d8d4cc" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <line x1="370" y1="296" x2="440" y2="296" stroke="#d8d4cc" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+        <defs><marker id="arr" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="#b5aea5" stroke-width="1"/></marker></defs>
+      </svg>
+    </div>
+
+    <div class="stack-grid">
+      <div class="stack-item">
+        <span class="stack-tag" style="background:var(--blue-bg);color:var(--blue)">Client</span>
+        <div><div class="stack-name">Expo / React Native</div><div class="stack-role">iOS, Android, Web</div></div>
+      </div>
+      <div class="stack-item">
+        <span class="stack-tag" style="background:var(--bg2);color:var(--text-2)">API</span>
+        <div><div class="stack-name">Vercel Serverless</div><div class="stack-role">Node 18</div></div>
+      </div>
+      <div class="stack-item">
+        <span class="stack-tag" style="background:var(--blue-bg);color:var(--blue)">LLM</span>
+        <div><div class="stack-name">Gemini 2.5 Flash</div><div class="stack-role">Free tier</div></div>
+      </div>
+      <div class="stack-item">
+        <span class="stack-tag" style="background:var(--violet-bg);color:var(--violet)">LLM</span>
+        <div><div class="stack-name">Claude Sonnet</div><div class="stack-role">Pro / Premium</div></div>
+      </div>
+      <div class="stack-item">
+        <span class="stack-tag" style="background:var(--green-bg);color:var(--green)">Msg</span>
+        <div><div class="stack-name">OpenClaw</div><div class="stack-role">WhatsApp</div></div>
+      </div>
+      <div class="stack-item">
+        <span class="stack-tag" style="background:var(--orange-bg);color:var(--orange)">Export</span>
+        <div><div class="stack-name">docx + pptxgenjs</div><div class="stack-role">Client-side</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="section" id="features">
+    <div class="section-label">Features</div>
+    <h2 class="section-title">What the app does</h2>
+    <div class="features-grid">
+      <div class="feature">
+        <div class="feature-icon">📄</div>
+        <div class="feature-name">Multi-source synthesis</div>
+        <div class="feature-desc">Feed in PDFs from different sources. Get the overlapping facts and key themes — without the editorial framing of any single one.</div>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">🎯</div>
+        <div class="feature-name">6 domain templates</div>
+        <div class="feature-desc">General, Financial, Legal, Academic, Medical, Executive. Auto-detected from document content.</div>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">📤</div>
+        <div class="feature-name">Export</div>
+        <div class="feature-desc">One-tap .docx and .pptx. Generated client-side, no server round-trip.</div>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">🔀</div>
+        <div class="feature-name">Version diff</div>
+        <div class="feature-desc">Two versions of a document in, structured comparison out. Change significance rated per item.</div>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">🔒</div>
+        <div class="feature-name">No file storage</div>
+        <div class="feature-desc">Read via FileReader, sent to LLM, never stored. Briefings saved on-device only.</div>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">📱</div>
+        <div class="feature-name">WhatsApp delivery</div>
+        <div class="feature-desc">Premium: forward a PDF via WhatsApp, get summary + .docx + .pptx back on your phone.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section class="section" id="pricing">
+    <div class="section-label">Pricing</div>
+    <h2 class="section-title">Three tiers</h2>
+    <p class="section-desc">Free is a full product tier. Paid tiers add model choice, larger files, and WhatsApp delivery.</p>
+    <div class="pricing-grid">
+      <div class="plan">
+        <div class="plan-name">Free</div>
+        <div class="plan-price">$0</div>
+        <div class="plan-desc">Gemini 2.5 Flash · No account</div>
+        <ul class="plan-features">
+          <li>Up to 25MB per PDF</li>
+          <li>5 documents per analysis</li>
+          <li>General + Academic templates</li>
+          <li>Export .docx and .pptx</li>
+          <li>Local analysis library</li>
+        </ul>
+        <a href="#" class="plan-cta plan-cta-light">Get Started</a>
+      </div>
+      <div class="plan pop">
+        <div class="plan-badge" style="background:var(--blue)">POPULAR</div>
+        <div class="plan-name" style="color:var(--blue)">Pro</div>
+        <div class="plan-price">$5<span>/mo</span></div>
+        <div class="plan-desc">Gemini + Claude Sonnet</div>
+        <ul class="plan-features">
+          <li>Everything in Free</li>
+          <li>Claude Sonnet</li>
+          <li>Up to 250MB per PDF</li>
+          <li>50 documents per analysis</li>
+          <li>All 6 templates</li>
+          <li>Version comparison</li>
+        </ul>
+        <a href="#" class="plan-cta plan-cta-blue">Upgrade to Pro</a>
+      </div>
+      <div class="plan feat">
+        <div class="plan-badge" style="background:var(--violet)">BEST VALUE</div>
+        <div class="plan-name" style="color:var(--violet)">Premium</div>
+        <div class="plan-price">$10<span>/mo</span></div>
+        <div class="plan-desc">Pro + WhatsApp via OpenClaw</div>
+        <ul class="plan-features">
+          <li>Everything in Pro</li>
+          <li>Up to 500MB per PDF</li>
+          <li>Unlimited documents</li>
+          <li>WhatsApp integration</li>
+          <li>Text PDF → get briefing</li>
+          <li>Auto .docx + .pptx delivery</li>
+        </ul>
+        <a href="#" class="plan-cta plan-cta-violet">Go Premium</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHATSAPP -->
+  <section class="section" id="whatsapp">
+    <div class="section-label">Premium</div>
+    <h2 class="section-title">WhatsApp delivery</h2>
+    <p class="section-desc">Forward a PDF to a WhatsApp number. OpenClaw webhook triggers analysis, results sent back as messages and file attachments.</p>
+    <div class="wa-grid">
+      <div class="wa-flow">
+        <div class="wa-step"><span class="wa-step-num">01</span><div class="wa-step-text"><strong>PDF sent</strong> to dedicated WhatsApp number</div></div>
+        <div class="wa-step"><span class="wa-step-num">02</span><div class="wa-step-text"><strong>OpenClaw webhook</strong> hits <code style="font-family:var(--mono);font-size:11px;background:var(--bg2);padding:1px 5px;border-radius:3px">/api/webhook-openclaw</code></div></div>
+        <div class="wa-step"><span class="wa-step-num">03</span><div class="wa-step-text"><strong>Claude or Gemini</strong> analyzes full document (~30s)</div></div>
+        <div class="wa-step"><span class="wa-step-num">04</span><div class="wa-step-text"><strong>Summary + exports</strong> delivered via WhatsApp</div></div>
+      </div>
+      <div class="wa-mockup">
+        <div class="wa-msg sent">
+          <div class="doc">Q3-Report.pdf · 4.2 MB</div>
+          <div class="wa-msg-time">9:42 AM</div>
+        </div>
+        <div class="wa-msg recv">
+          📄 Received <strong>Q3-Report.pdf</strong><br>⏳ ~30 seconds.
+          <div class="wa-msg-time">9:42 AM</div>
+        </div>
+        <div class="wa-msg recv">
+          📋 <strong>Q3 Financial Report</strong><br><br>Revenue +12% YoY to $847M. EBITDA margin up 180bps. Risks: FX headwinds, delayed launch.<br><br>📎 <em>Q3_Briefing.docx</em><br>📎 <em>Q3_Briefing.pptx</em>
+          <div class="wa-msg-time">9:43 AM</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta-banner">
+    <div class="cta-inner">
+      <h2>Try it with your own PDFs</h2>
+      <p>Free tier — Gemini 2.5 Flash, no sign-up, runs in your browser.</p>
+      <a href="#" class="btn btn-dark">Open PDF Summary →</a>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="footer-left">&copy; 2026 pdf-summary · pdfsummary.app</div>
+    <div class="footer-links">
+      <a href="#">Privacy</a>
+      <a href="#">Terms</a>
+      <a href="https://github.com">GitHub</a>
+    </div>
+  </footer>
+
+</div>
+</body>
+</html>
