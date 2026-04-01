@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PDF Summary — Turn documents into structured intelligence</title>
+<meta name="description" content="Upload any PDF. Get a structured briefing with key themes, statistics, watch list, and export to Word or PowerPoint. Powered by Claude and Gemini.">
+<meta property="og:title" content="PDF Summary — Document intelligence for professionals">
+<meta property="og:description" content="Transform PDFs into structured briefings. Export as DOCX or PPTX. Private by design.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://pdfsummary.app">
+<link rel="canonical" href="https://pdfsummary.app">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Söhne,+Satoshi,+system-ui&family=Satoshi:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --ink:#0a0a0b;--ink2:#2d2d30;--ink3:#5a5a5f;--ink4:#8a8a8f;
+  --cream:#f8f7f4;--warm:#f2f0eb;--card:#ffffff;
+  --rule:rgba(10,10,11,.08);--rule-dark:rgba(255,255,255,.08);
+  --accent:#1a5cff;--accent-soft:rgba(26,92,255,.06);
+  --green:#0d9f4f;--green-soft:rgba(13,159,79,.06);
+  --amber:#c27803;--amber-soft:rgba(194,120,3,.06);
+  --heading:'Instrument Serif','Georgia','Times New Roman',serif;
+  --body:'Satoshi',-apple-system,system-ui,sans-serif;
+  --mono:'SF Mono','Menlo','Consolas',monospace;
+  --max-w:1100px;--gutter:clamp(20px,4vw,40px);
+}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{font-family:var(--body);color:var(--ink2);background:var(--cream);
+  line-height:1.7;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+img{display:block;max-width:100%}
+
+/* ── Nav ── */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 var(--gutter);
+  background:rgba(248,247,244,.85);backdrop-filter:blur(20px) saturate(1.2);
+  border-bottom:1px solid var(--rule)}
+.nav-inner{max-width:var(--max-w);margin:0 auto;display:flex;align-items:center;
+  justify-content:space-between;height:60px}
+.nav-brand{display:flex;align-items:center;gap:10px}
+.nav-icon{width:28px;height:28px;background:var(--ink);border-radius:6px;
+  display:grid;place-items:center;padding:6px;gap:2px;grid-template-rows:1fr 1fr 1fr}
+.nav-icon span{display:block;height:2px;background:rgba(255,255,255,.8);border-radius:1px;width:100%}
+.nav-icon span:nth-child(2){width:60%}
+.nav-name{font-family:var(--body);font-weight:700;font-size:15px;color:var(--ink);letter-spacing:-.3px}
+.nav-links{display:flex;align-items:center;gap:28px}
+.nav-links a{font-size:13px;font-weight:500;color:var(--ink3);transition:color .15s}
+.nav-links a:hover{color:var(--ink)}
+.nav-cta{background:var(--ink);color:var(--cream) !important;padding:8px 20px;
+  border-radius:8px;font-weight:600;font-size:13px;transition:opacity .15s}
+.nav-cta:hover{opacity:.85}
+
+/* ── Hero ── */
+.hero{padding:160px var(--gutter) 100px;text-align:center;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-200px;left:50%;transform:translateX(-50%);
+  width:900px;height:900px;border-radius:50%;
+  background:radial-gradient(circle,rgba(26,92,255,.04) 0%,transparent 60%);pointer-events:none}
+.hero-inner{max-width:720px;margin:0 auto;position:relative;z-index:1}
+.hero-tag{display:inline-flex;align-items:center;gap:6px;
+  font-size:12px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;
+  color:var(--accent);background:var(--accent-soft);padding:5px 14px 5px 10px;
+  border-radius:20px;margin-bottom:28px;border:1px solid rgba(26,92,255,.08)}
+.hero-tag-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);
+  animation:pulse 2.5s ease infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.hero h1{font-family:var(--heading);font-size:clamp(44px,6vw,72px);line-height:1.05;
+  font-weight:400;letter-spacing:-.03em;margin-bottom:24px;color:var(--ink)}
+.hero h1 em{font-style:italic;color:var(--accent)}
+.hero-sub{font-size:17px;color:var(--ink3);line-height:1.75;max-width:520px;
+  margin:0 auto 40px}
+.hero-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:13px 28px;
+  border-radius:10px;font-weight:600;font-size:15px;transition:all .2s;border:none;cursor:pointer}
+.btn-primary{background:var(--ink);color:var(--cream);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(0,0,0,.12)}
+.btn-secondary{background:transparent;color:var(--ink);border:1.5px solid var(--rule)}
+.btn-secondary:hover{border-color:var(--ink3);background:rgba(0,0,0,.02)}
+.btn svg{width:18px;height:18px}
+.hero-proof{display:flex;gap:40px;justify-content:center;margin-top:56px;
+  padding-top:32px;border-top:1px solid var(--rule)}
+.proof-item{text-align:center}
+.proof-val{font-family:var(--body);font-size:15px;font-weight:700;color:var(--ink)}
+.proof-lbl{font-size:12px;color:var(--ink4);margin-top:2px}
+
+/* ── Transform section ── */
+.transform{padding:100px var(--gutter);background:var(--ink);color:#fff;position:relative;overflow:hidden}
+.transform::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.06),transparent)}
+.transform-inner{max-width:var(--max-w);margin:0 auto}
+.transform-header{text-align:center;margin-bottom:64px}
+.section-tag{font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;
+  margin-bottom:16px}
+.section-tag--light{color:rgba(255,255,255,.3)}
+.section-tag--dark{color:var(--accent)}
+.section-title{font-family:var(--heading);font-size:clamp(32px,4vw,48px);line-height:1.1;
+  font-weight:400;letter-spacing:-.025em;margin-bottom:16px}
+.section-sub{font-size:15px;line-height:1.7;max-width:480px;margin:0 auto}
+.section-sub--light{color:rgba(255,255,255,.35)}
+.section-sub--dark{color:var(--ink3)}
+.transform-demo{display:grid;grid-template-columns:1fr 60px 1fr;gap:0;align-items:stretch;
+  background:rgba(255,255,255,.03);border-radius:20px;border:1px solid rgba(255,255,255,.06);overflow:hidden}
+.demo-before,.demo-after{padding:36px}
+.demo-before{background:rgba(255,255,255,.02)}
+.demo-after{background:rgba(26,92,255,.03)}
+.demo-label{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
+  margin-bottom:20px}
+.demo-label--muted{color:rgba(255,255,255,.25)}
+.demo-label--accent{color:var(--accent)}
+.demo-arrow{display:flex;align-items:center;justify-content:center;
+  background:rgba(255,255,255,.04);font-size:24px;color:rgba(255,255,255,.2)}
+.demo-lines{display:flex;flex-direction:column;gap:8px}
+.demo-line{height:8px;border-radius:4px;background:rgba(255,255,255,.06)}
+.demo-line:nth-child(1){width:100%}.demo-line:nth-child(2){width:85%}
+.demo-line:nth-child(3){width:92%}.demo-line:nth-child(4){width:60%}
+.demo-line:nth-child(5){width:78%}.demo-line:nth-child(6){width:88%}
+.demo-line:nth-child(7){width:45%}.demo-line:nth-child(8){width:95%}
+.demo-output{display:flex;flex-direction:column;gap:14px}
+.demo-output-title{font-family:var(--heading);font-size:18px;color:#fff;font-weight:400}
+.demo-output-stat{display:flex;gap:12px}
+.demo-stat{padding:6px 10px;border-radius:6px;background:rgba(26,92,255,.12);
+  font-size:11px;font-weight:600;color:rgba(255,255,255,.7)}
+.demo-output-themes{display:flex;flex-direction:column;gap:6px}
+.demo-theme{display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,.5)}
+.demo-theme-dot{width:6px;height:6px;border-radius:50%}
+.demo-output-tags{display:flex;gap:6px;margin-top:4px}
+.demo-tag{font-size:10px;padding:3px 8px;border-radius:4px;font-weight:600;
+  border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.4)}
+
+/* ── How ── */
+.how{padding:100px var(--gutter);background:var(--cream)}
+.how-inner{max-width:var(--max-w);margin:0 auto}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;margin-top:56px;
+  background:var(--rule);border-radius:16px;overflow:hidden}
+.step{background:var(--card);padding:44px 36px}
+.step-num{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--accent);
+  margin-bottom:20px;letter-spacing:1px}
+.step h3{font-family:var(--heading);font-size:22px;font-weight:400;color:var(--ink);
+  margin-bottom:10px;letter-spacing:-.02em}
+.step p{font-size:14px;color:var(--ink3);line-height:1.7}
+
+/* ── Features ── */
+.features{padding:100px var(--gutter);background:var(--warm)}
+.features-inner{max-width:var(--max-w);margin:0 auto}
+.feature-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;margin-top:56px;
+  background:var(--rule);border-radius:16px;overflow:hidden}
+.feature{background:var(--card);padding:40px 36px}
+.feature-icon{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;
+  margin-bottom:18px;font-size:18px}
+.feature-icon--blue{background:var(--accent-soft);color:var(--accent)}
+.feature-icon--green{background:var(--green-soft);color:var(--green)}
+.feature-icon--amber{background:var(--amber-soft);color:var(--amber)}
+.feature-icon--ink{background:rgba(10,10,11,.04);color:var(--ink)}
+.feature h3{font-family:var(--heading);font-size:20px;font-weight:400;color:var(--ink);
+  margin-bottom:8px;letter-spacing:-.02em}
+.feature p{font-size:14px;color:var(--ink3);line-height:1.7}
+
+/* ── Pricing ── */
+.pricing{padding:100px var(--gutter);background:var(--cream)}
+.pricing-inner{max-width:var(--max-w);margin:0 auto}
+.pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:56px}
+.price-card{background:var(--card);border-radius:16px;padding:36px;
+  border:1px solid var(--rule);position:relative;transition:box-shadow .2s}
+.price-card:hover{box-shadow:0 8px 32px rgba(0,0,0,.06)}
+.price-card--featured{border-color:var(--ink);box-shadow:0 4px 20px rgba(0,0,0,.08)}
+.price-card--featured::before{content:'POPULAR';position:absolute;top:-10px;left:36px;
+  font-size:10px;font-weight:700;letter-spacing:1.5px;background:var(--ink);
+  color:var(--cream);padding:3px 10px;border-radius:4px}
+.price-name{font-size:13px;font-weight:600;color:var(--ink3);letter-spacing:.5px;margin-bottom:8px}
+.price-amount{font-family:var(--heading);font-size:40px;color:var(--ink);margin-bottom:4px}
+.price-period{font-size:13px;color:var(--ink4);margin-bottom:24px}
+.price-model{font-size:12px;font-weight:600;color:var(--accent);background:var(--accent-soft);
+  display:inline-block;padding:3px 10px;border-radius:5px;margin-bottom:20px}
+.price-features{list-style:none;display:flex;flex-direction:column;gap:12px;margin-bottom:28px}
+.price-features li{font-size:14px;color:var(--ink2);padding-left:22px;position:relative}
+.price-features li::before{content:'✓';position:absolute;left:0;color:var(--green);font-weight:700;font-size:13px}
+.price-btn{display:block;width:100%;text-align:center;padding:13px;border-radius:10px;
+  font-weight:600;font-size:14px;transition:all .15s;border:none;cursor:pointer}
+.price-btn--primary{background:var(--ink);color:var(--cream)}
+.price-btn--primary:hover{opacity:.85}
+.price-btn--secondary{background:transparent;color:var(--ink);border:1.5px solid var(--rule)}
+.price-btn--secondary:hover{border-color:var(--ink3)}
+
+/* ── Privacy ── */
+.privacy-bar{padding:60px var(--gutter);background:var(--ink);color:#fff;text-align:center}
+.privacy-bar-inner{max-width:600px;margin:0 auto}
+.privacy-bar h2{font-family:var(--heading);font-size:clamp(24px,3vw,32px);font-weight:400;
+  margin-bottom:12px;letter-spacing:-.02em}
+.privacy-bar p{font-size:15px;color:rgba(255,255,255,.4);line-height:1.7}
+.privacy-badges{display:flex;gap:24px;justify-content:center;margin-top:28px}
+.privacy-badge{font-size:12px;font-weight:600;color:rgba(255,255,255,.5);
+  display:flex;align-items:center;gap:6px}
+.privacy-badge-icon{font-size:16px}
+
+/* ── Footer ── */
+footer{padding:48px var(--gutter) 40px;background:var(--cream);
+  border-top:1px solid var(--rule)}
+.footer-inner{max-width:var(--max-w);margin:0 auto;display:flex;
+  justify-content:space-between;align-items:center}
+.footer-left{font-size:13px;color:var(--ink4)}
+.footer-links{display:flex;gap:24px}
+.footer-links a{font-size:13px;color:var(--ink4);transition:color .15s}
+.footer-links a:hover{color:var(--ink)}
+
+/* ── Responsive ── */
+@media(max-width:768px){
+  .hero h1{font-size:clamp(36px,8vw,52px)}
+  .hero-proof{gap:24px;flex-wrap:wrap}
+  .transform-demo{grid-template-columns:1fr;gap:0}
+  .demo-arrow{padding:12px;transform:rotate(90deg)}
+  .steps{grid-template-columns:1fr}
+  .feature-grid{grid-template-columns:1fr}
+  .pricing-grid{grid-template-columns:1fr}
+  .nav-links a:not(.nav-cta){display:none}
+  .footer-inner{flex-direction:column;gap:16px;text-align:center}
+}
+
+/* ── Stagger animations ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+.hero-tag,.hero h1,.hero-sub,.hero-actions,.hero-proof{
+  animation:fadeUp .7s ease both}
+.hero h1{animation-delay:.1s}
+.hero-sub{animation-delay:.2s}
+.hero-actions{animation-delay:.3s}
+.hero-proof{animation-delay:.45s}
+</style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="nav-brand">
+      <div class="nav-icon"><span></span><span></span><span></span></div>
+      <span class="nav-name">PDF Summary</span>
+    </a>
+    <div class="nav-links">
+      <a href="#how">How it works</a>
+      <a href="#features">Features</a>
+      <a href="#pricing">Pricing</a>
+      <a href="https://apps.apple.com/app/pdf-summary" class="nav-cta">Download</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-tag">
+      <span class="hero-tag-dot"></span>
+      Now with Claude &amp; Gemini
+    </div>
+    <h1>Documents in.<br><em>Intelligence</em> out.</h1>
+    <p class="hero-sub">
+      Upload any PDF. Get a structured briefing with themes, statistics, and a watch list — ready to export as Word or PowerPoint.
+    </p>
+    <div class="hero-actions">
+      <a href="https://apps.apple.com/app/pdf-summary" class="btn btn-primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+        Download for iOS
+      </a>
+      <a href="#how" class="btn btn-secondary">See how it works</a>
+    </div>
+    <div class="hero-proof">
+      <div class="proof-item">
+        <div class="proof-val">PDF &amp; TXT</div>
+        <div class="proof-lbl">Input formats</div>
+      </div>
+      <div class="proof-item">
+        <div class="proof-val">.docx &amp; .pptx</div>
+        <div class="proof-lbl">Export formats</div>
+      </div>
+      <div class="proof-item">
+        <div class="proof-val">On-device</div>
+        <div class="proof-lbl">Processing</div>
+      </div>
+      <div class="proof-item">
+        <div class="proof-val">Multi-doc</div>
+        <div class="proof-lbl">Analysis</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Transform -->
+<section class="transform">
+  <div class="transform-inner">
+    <div class="transform-header">
+      <div class="section-tag section-tag--light">THE TRANSFORMATION</div>
+      <h2 class="section-title" style="color:#fff">From pages of text to<br>structured briefings</h2>
+      <p class="section-sub section-sub--light">Your documents become actionable intelligence — themes extracted, statistics highlighted, risks flagged.</p>
+    </div>
+    <div class="transform-demo">
+      <div class="demo-before">
+        <div class="demo-label demo-label--muted">YOUR PDF</div>
+        <div class="demo-lines">
+          <div class="demo-line"></div><div class="demo-line"></div>
+          <div class="demo-line"></div><div class="demo-line"></div>
+          <div class="demo-line"></div><div class="demo-line"></div>
+          <div class="demo-line"></div><div class="demo-line"></div>
+        </div>
+        <div style="margin-top:16px;display:flex;gap:8px">
+          <div class="demo-tag">quarterly-report.pdf</div>
+          <div class="demo-tag">42 pages</div>
+        </div>
+      </div>
+      <div class="demo-arrow">→</div>
+      <div class="demo-after">
+        <div class="demo-label demo-label--accent">STRUCTURED BRIEFING</div>
+        <div class="demo-output">
+          <div class="demo-output-title">Q4 Performance Analysis</div>
+          <div class="demo-output-stat">
+            <span class="demo-stat">Revenue +23%</span>
+            <span class="demo-stat">Margin 18.4%</span>
+            <span class="demo-stat">3 risks</span>
+          </div>
+          <div class="demo-output-themes">
+            <div class="demo-theme"><div class="demo-theme-dot" style="background:#1a5cff"></div>Market Expansion</div>
+            <div class="demo-theme"><div class="demo-theme-dot" style="background:#0d9f4f"></div>Supply Chain Shifts</div>
+            <div class="demo-theme"><div class="demo-theme-dot" style="background:#c27803"></div>Regulatory Outlook</div>
+          </div>
+          <div class="demo-output-tags">
+            <div class="demo-tag">.docx</div>
+            <div class="demo-tag">.pptx</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- How -->
+<section class="how" id="how">
+  <div class="how-inner">
+    <div style="text-align:center">
+      <div class="section-tag section-tag--dark">HOW IT WORKS</div>
+      <h2 class="section-title" style="color:var(--ink)">Three steps to clarity</h2>
+      <p class="section-sub section-sub--dark">No account needed for the free tier. Upload, analyze, export.</p>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <h3>Upload documents</h3>
+        <p>Select PDFs or text files from your device. Batch up to 5 files on Free, unlimited on Pro. Native PDF processing — no conversion needed.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <h3>AI analysis</h3>
+        <p>Claude or Gemini reads every page, identifies themes, extracts statistics, and cross-references across documents. Large files are chunked automatically.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <h3>Export &amp; share</h3>
+        <p>Get a structured briefing with executive summary, themed analysis, watch list, and closing assessment. Export as Word or PowerPoint in one tap.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section class="features" id="features">
+  <div class="features-inner">
+    <div style="text-align:center">
+      <div class="section-tag section-tag--dark">FEATURES</div>
+      <h2 class="section-title" style="color:var(--ink)">Built for real work</h2>
+      <p class="section-sub section-sub--dark">Everything you need to turn documents into decisions.</p>
+    </div>
+    <div class="feature-grid">
+      <div class="feature">
+        <div class="feature-icon feature-icon--blue">📄</div>
+        <h3>Native PDF processing</h3>
+        <p>PDFs are sent directly to the AI as documents — not converted to text first. Tables, formatting, and structure are preserved for better analysis.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon feature-icon--green">📊</div>
+        <h3>Structured output</h3>
+        <p>Every analysis follows a consistent format: executive summary, themed sections with statistics, cross-document patterns, watch list, and closing assessment.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon feature-icon--amber">📁</div>
+        <h3>Multi-document analysis</h3>
+        <p>Upload multiple files and get a cross-referenced briefing. The AI identifies commonalities, contradictions, and patterns across your entire document set.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon feature-icon--ink">📥</div>
+        <h3>Word &amp; PowerPoint export</h3>
+        <p>One tap to generate a professional .docx report or .pptx slide deck. Formatted with proper headings, tables, and your analysis structure intact.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon feature-icon--blue">🤖</div>
+        <h3>Dual AI models</h3>
+        <p>Choose between Google Gemini (free tier, fast) and Anthropic Claude (premium, deeper analysis). Both process PDFs natively with full document understanding.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon feature-icon--green">🔒</div>
+        <h3>Private by design</h3>
+        <p>Documents are processed on-device and sent directly to the AI provider. No intermediary servers, no storage, no data retention. Your files stay yours.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Pricing -->
+<section class="pricing" id="pricing">
+  <div class="pricing-inner">
+    <div style="text-align:center">
+      <div class="section-tag section-tag--dark">PRICING</div>
+      <h2 class="section-title" style="color:var(--ink)">Start free, upgrade when you need to</h2>
+      <p class="section-sub section-sub--dark">No account needed. The free tier works immediately.</p>
+    </div>
+    <div class="pricing-grid">
+      <div class="price-card">
+        <div class="price-name">Free</div>
+        <div class="price-amount" style="font-size:32px">$0</div>
+        <div class="price-period">No account needed</div>
+        <div class="price-model">Gemini Flash</div>
+        <ul class="price-features">
+          <li>5 documents per session</li>
+          <li>Structured analysis</li>
+          <li>.docx &amp; .pptx export</li>
+          <li>50K tokens per day</li>
+        </ul>
+        <a href="https://apps.apple.com/app/pdf-summary" class="price-btn price-btn--secondary">Get started</a>
+      </div>
+      <div class="price-card price-card--featured">
+        <div class="price-name">Pro</div>
+        <div class="price-amount">$9</div>
+        <div class="price-period">per month</div>
+        <div class="price-model">Gemini Pro</div>
+        <ul class="price-features">
+          <li>Unlimited documents</li>
+          <li>Deep analysis mode</li>
+          <li>Priority processing</li>
+          <li>200K tokens per day</li>
+        </ul>
+        <button class="price-btn price-btn--primary">Upgrade to Pro</button>
+      </div>
+      <div class="price-card">
+        <div class="price-name">Enterprise</div>
+        <div class="price-amount">$25</div>
+        <div class="price-period">per month</div>
+        <div class="price-model">Claude Opus</div>
+        <ul class="price-features">
+          <li>Claude Opus intelligence</li>
+          <li>Batch processing</li>
+          <li>API access</li>
+          <li>500K tokens per day</li>
+        </ul>
+        <button class="price-btn price-btn--secondary">Contact us</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Privacy -->
+<section class="privacy-bar">
+  <div class="privacy-bar-inner">
+    <h2>Your documents never touch our servers</h2>
+    <p>PDF Summary processes files on-device and communicates directly with Claude or Gemini. No middleman, no storage, no data mining.</p>
+    <div class="privacy-badges">
+      <div class="privacy-badge"><span class="privacy-badge-icon">🔒</span> End-to-end</div>
+      <div class="privacy-badge"><span class="privacy-badge-icon">🚫</span> No data retention</div>
+      <div class="privacy-badge"><span class="privacy-badge-icon">📱</span> On-device processing</div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-left">&copy; 2026 PDF Summary</div>
+    <div class="footer-links">
+      <a href="/privacy.html">Privacy</a>
+      <a href="mailto:hello@pdfsummary.app">Contact</a>
+      <a href="https://apps.apple.com/app/pdf-summary">App Store</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
