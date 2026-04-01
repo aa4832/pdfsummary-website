@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PDF Summary</title>
+<meta name="description" content="Upload PDFs on your phone. Converts to text, sends to an LLM, returns structured summaries as .docx and .pptx.">
+<meta name="theme-color" content="#ffffff">
+<link rel="canonical" href="https://pdfsummary.app">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root,[data-theme="light"]{
+  --bg:#fff;--bg2:#f7f7f7;--surface:#fff;
+  --border:#ddd;--text:#1a1a1a;--text2:#555;--text3:#888;--text4:#bbb;
+  --accent:#1a5cff;--accent-bg:#f0f4ff;
+  --nav-bg:rgba(255,255,255,.95);--code-bg:#f3f3f3;
+  --diag-bg:#fafafa;--diag-node:#fff;--diag-stroke:#ccc;--diag-text:#333;--diag-sub:#888;
+  --diag-arrow:#aaa;--diag-accent:#1a5cff;--diag-green:#1a8a4a;--diag-amber:#9a7b1a
+}
+[data-theme="dark"]{
+  --bg:#141414;--bg2:#1c1c1c;--surface:#1c1c1c;
+  --border:#2c2c2c;--text:#ddd;--text2:#999;--text3:#666;--text4:#444;
+  --accent:#6b8aff;--accent-bg:rgba(107,138,255,.08);
+  --nav-bg:rgba(20,20,20,.95);--code-bg:#222;
+  --diag-bg:#1a1a1a;--diag-node:#222;--diag-stroke:#333;--diag-text:#ccc;--diag-sub:#777;
+  --diag-arrow:#555;--diag-accent:#6b8aff;--diag-green:#5cb87a;--diag-amber:#d4b04a
+}
+html{scroll-behavior:smooth}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-serif;
+color:var(--text2);background:var(--bg);line-height:1.6;-webkit-font-smoothing:antialiased;
+transition:background .15s,color .15s;font-size:14px}
+a{color:inherit;text-decoration:none}
+.w{max-width:800px;margin:0 auto;padding:0 20px}
+.mono{font-family:'SF Mono',Menlo,Consolas,monospace}
+
+nav{position:sticky;top:0;z-index:100;background:var(--nav-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
+.nav-in{display:flex;align-items:center;justify-content:space-between;height:46px}
+.nav-l{display:flex;align-items:center;gap:6px;font-weight:700;font-size:13px;color:var(--text)}
+.logo{width:18px;height:22px;border:1.5px solid var(--text);border-radius:2px;position:relative}
+.logo::before{content:'';position:absolute;top:3px;left:2.5px;right:2.5px;height:1.5px;background:var(--text);box-shadow:0 4px 0 var(--text),0 8px 0 var(--accent),0 12px 0 var(--text)}
+.logo::after{content:'';position:absolute;top:-1.5px;right:-1.5px;width:5px;height:5px;border-bottom:1.5px solid var(--text);border-left:1.5px solid var(--text);background:var(--bg)}
+.nav-r{display:flex;align-items:center;gap:12px}
+.nav-r a{font-size:12px;color:var(--text3)}.nav-r a:hover{color:var(--text)}
+.nav-dl{background:var(--text);color:var(--bg) !important;padding:4px 12px;border-radius:5px;font-weight:600;font-size:12px}
+.tbtn{background:none;border:1px solid var(--border);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:12px;color:var(--text3);line-height:1}
+
+.sec{padding:36px 0;border-bottom:1px solid var(--border)}.sec:last-of-type{border-bottom:none}
+.sec-t{font-size:16px;font-weight:700;color:var(--text);margin-bottom:4px}
+.sec-d{font-size:13px;color:var(--text3);margin-bottom:16px}
+.btn{padding:7px 16px;border-radius:6px;font-weight:600;font-size:13px;border:none;cursor:pointer;font-family:inherit}
+.btn-p{background:var(--text);color:var(--bg)}.btn-p:hover{opacity:.85}
+.btn-s{background:var(--bg);color:var(--text);border:1px solid var(--border)}.btn-s:hover{border-color:var(--text3)}
+
+/* Hero */
+.hero{padding:48px 0 36px;border-bottom:1px solid var(--border)}
+.hero h1{font-size:22px;font-weight:700;color:var(--text);line-height:1.3;margin-bottom:8px}
+.hero-d{font-size:14px;color:var(--text2);max-width:540px;margin-bottom:20px}
+.hero-btns{display:flex;gap:8px;margin-bottom:32px}
+
+/* Diagram container */
+.diag-wrap{border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--diag-bg)}
+.diag-label{font-size:10px;font-weight:700;letter-spacing:1px;color:var(--text4);padding:10px 16px 0;text-transform:uppercase}
+.diag-svg{width:100%;height:auto;display:block}
+
+/* Features */
+.feat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.feat{padding:12px;border:1px solid var(--border);border-radius:6px;background:var(--surface)}
+.feat-n{font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px}
+.feat-d{font-size:11px;color:var(--text3);line-height:1.5}
+
+/* Pricing */
+.price-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pc{padding:16px;border-radius:6px;border:1px solid var(--border);background:var(--surface)}
+.pc--a{border-color:var(--accent)}
+.pc-n{font-size:11px;font-weight:700;color:var(--text3);margin-bottom:3px}
+.pc-p{font-size:24px;font-weight:700;color:var(--text);margin-bottom:1px}
+.pc-per{font-size:11px;color:var(--text4);margin-bottom:8px}
+.pc-m{font-size:10px;color:var(--accent);background:var(--accent-bg);padding:2px 6px;border-radius:3px;display:inline-block;margin-bottom:8px}
+.pc-l{list-style:none;margin-bottom:12px}
+.pc-l li{font-size:12px;color:var(--text2);padding:2px 0 2px 12px;position:relative}
+.pc-l li::before{content:'·';position:absolute;left:2px;color:var(--text4)}
+.pc-b{display:block;width:100%;text-align:center;padding:7px;border-radius:5px;font-weight:600;font-size:12px;border:none;cursor:pointer;font-family:inherit}
+.pc-bf{background:var(--text);color:var(--bg)}.pc-bo{background:var(--surface);color:var(--text);border:1px solid var(--border)}
+
+footer{padding:16px 0;border-top:1px solid var(--border);font-size:11px;color:var(--text4)}
+.f-in{display:flex;justify-content:space-between;align-items:center}
+.f-r{display:flex;gap:12px}.f-r a{color:var(--text4)}.f-r a:hover{color:var(--text)}
+
+@media(max-width:640px){
+  .feat-grid,.price-row{grid-template-columns:1fr}
+  .nav-r a:not(.nav-dl):not(.tbtn){display:none}
+  .f-in{flex-direction:column;gap:4px}
+}
+</style>
+</head>
+<body>
+
+<nav><div class="nav-in w">
+  <a href="/" class="nav-l"><div class="logo"></div>PDF Summary</a>
+  <div class="nav-r"><a href="#pricing">Pricing</a>
+    <button class="tbtn" onclick="toggleTheme()" id="themeBtn">☾</button>
+    <a href="https://apps.apple.com/app/pdf-summary" class="nav-dl">Download</a></div>
+</div></nav>
+
+<section class="hero"><div class="w">
+  <h1>Structured analysis from PDFs</h1>
+  <p class="hero-d">Upload PDFs on your phone. The app converts them to text, sends the text to an LLM (Claude or Gemini), and returns structured summaries you can export as .docx or .pptx.</p>
+  <div class="hero-btns">
+    <a href="https://apps.apple.com/app/pdf-summary" class="btn btn-p">Download for iOS</a>
+    <a href="#pricing" class="btn btn-s">Pricing</a>
+  </div>
+
+  <div class="diag-wrap">
+    <div class="diag-label">System diagram</div>
+    <svg class="diag-svg" viewBox="0 0 760 260" xmlns="http://www.w3.org/2000/svg">
+
+      <!-- PHONE -->
+      <rect x="20" y="60" width="90" height="150" rx="12" fill="var(--diag-node)" stroke="var(--diag-stroke)" stroke-width="1.5"/>
+      <rect x="32" y="80" width="66" height="100" rx="2" fill="var(--diag-bg)" stroke="var(--diag-stroke)" stroke-width="1"/>
+      <!-- tiny PDF icons inside phone screen -->
+      <rect x="38" y="88" width="20" height="26" rx="2" fill="var(--diag-bg)" stroke="var(--diag-accent)" stroke-width="1"/>
+      <text x="48" y="105" text-anchor="middle" font-size="7" font-weight="700" fill="var(--diag-accent)" font-family="SF Mono,Menlo,monospace">.pdf</text>
+      <rect x="64" y="88" width="20" height="26" rx="2" fill="var(--diag-bg)" stroke="var(--diag-accent)" stroke-width="1"/>
+      <text x="74" y="105" text-anchor="middle" font-size="7" font-weight="700" fill="var(--diag-accent)" font-family="SF Mono,Menlo,monospace">.pdf</text>
+      <rect x="38" y="120" width="20" height="26" rx="2" fill="var(--diag-bg)" stroke="var(--diag-accent)" stroke-width="1"/>
+      <text x="48" y="137" text-anchor="middle" font-size="7" font-weight="700" fill="var(--diag-accent)" font-family="SF Mono,Menlo,monospace">.txt</text>
+      <!-- home indicator -->
+      <rect x="52" y="192" width="26" height="3" rx="1.5" fill="var(--diag-stroke)"/>
+      <text x="65" y="230" text-anchor="middle" font-size="11" font-weight="700" fill="var(--diag-text)" font-family="-apple-system,sans-serif">iPhone</text>
+      <text x="65" y="244" text-anchor="middle" font-size="9" fill="var(--diag-sub)" font-family="-apple-system,sans-serif">PDF &amp; TXT input</text>
+
+      <!-- ARROW 1: Phone → Convert -->
+      <line x1="115" y1="135" x2="175" y2="135" stroke="var(--diag-arrow)" stroke-width="1.5" stroke-dasharray="4,3"/>
+      <polygon points="175,130 185,135 175,140" fill="var(--diag-arrow)"/>
+
+      <!-- CONVERT NODE -->
+      <rect x="190" y="100" width="120" height="70" rx="6" fill="var(--diag-node)" stroke="var(--diag-stroke)" stroke-width="1.5"/>
+      <text x="250" y="128" text-anchor="middle" font-size="11" font-weight="700" fill="var(--diag-text)" font-family="-apple-system,sans-serif">Text extraction</text>
+      <text x="250" y="144" text-anchor="middle" font-size="9" fill="var(--diag-sub)" font-family="SF Mono,Menlo,monospace">PDF → .txt</text>
+      <text x="250" y="158" text-anchor="middle" font-size="8" fill="var(--diag-sub)" font-family="-apple-system,sans-serif">on-device</text>
+
+      <!-- ARROW 2: Convert → LLM -->
+      <line x1="315" y1="135" x2="375" y2="135" stroke="var(--diag-arrow)" stroke-width="1.5" stroke-dasharray="4,3"/>
+      <polygon points="375,130 385,135 375,140" fill="var(--diag-arrow)"/>
+
+      <!-- LLM NODE -->
+      <rect x="390" y="85" width="130" height="100" rx="6" fill="var(--diag-node)" stroke="var(--diag-accent)" stroke-width="1.5"/>
+      <text x="455" y="113" text-anchor="middle" font-size="11" font-weight="700" fill="var(--diag-accent)" font-family="-apple-system,sans-serif">LLM</text>
+      <text x="455" y="130" text-anchor="middle" font-size="9" fill="var(--diag-sub)" font-family="SF Mono,Menlo,monospace">Claude API</text>
+      <text x="455" y="144" text-anchor="middle" font-size="8" fill="var(--diag-sub)" font-family="-apple-system,sans-serif">or</text>
+      <text x="455" y="158" text-anchor="middle" font-size="9" fill="var(--diag-sub)" font-family="SF Mono,Menlo,monospace">Gemini API</text>
+      <text x="455" y="175" text-anchor="middle" font-size="8" fill="var(--diag-sub)" font-family="-apple-system,sans-serif">structured JSON output</text>
+
+      <!-- ARROW 3: LLM → Export -->
+      <line x1="525" y1="135" x2="585" y2="135" stroke="var(--diag-arrow)" stroke-width="1.5" stroke-dasharray="4,3"/>
+      <polygon points="585,130 595,135 585,140" fill="var(--diag-arrow)"/>
+
+      <!-- EXPORT NODE -->
+      <rect x="600" y="80" width="130" height="110" rx="6" fill="var(--diag-node)" stroke="var(--diag-stroke)" stroke-width="1.5"/>
+      <text x="665" y="108" text-anchor="middle" font-size="11" font-weight="700" fill="var(--diag-text)" font-family="-apple-system,sans-serif">Export</text>
+      <!-- docx box -->
+      <rect x="614" y="118" width="46" height="28" rx="4" fill="var(--diag-bg)" stroke="var(--diag-green)" stroke-width="1"/>
+      <text x="637" y="136" text-anchor="middle" font-size="9" font-weight="700" fill="var(--diag-green)" font-family="SF Mono,Menlo,monospace">.docx</text>
+      <!-- pptx box -->
+      <rect x="670" y="118" width="46" height="28" rx="4" fill="var(--diag-bg)" stroke="var(--diag-amber)" stroke-width="1"/>
+      <text x="693" y="136" text-anchor="middle" font-size="9" font-weight="700" fill="var(--diag-amber)" font-family="SF Mono,Menlo,monospace">.pptx</text>
+      <!-- library -->
+      <rect x="614" y="154" width="102" height="24" rx="4" fill="var(--diag-bg)" stroke="var(--diag-stroke)" stroke-width="1"/>
+      <text x="665" y="170" text-anchor="middle" font-size="8" fill="var(--diag-sub)" font-family="-apple-system,sans-serif">saved to local library</text>
+
+      <!-- Bottom labels for the flow -->
+      <text x="155" y="48" text-anchor="middle" font-size="8" fill="var(--diag-sub)" font-family="-apple-system,sans-serif">select files</text>
+      <text x="350" y="48" text-anchor="middle" font-size="8" fill="var(--diag-sub)" font-family="-apple-system,sans-serif">plain text</text>
+      <text x="560" y="48" text-anchor="middle" font-size="8" fill="var(--diag-sub)" font-family="-apple-system,sans-serif">JSON response</text>
+
+      <!-- top flow arrows (thin, above main diagram) -->
+      <line x1="65" y1="52" x2="250" y2="52" stroke="var(--diag-arrow)" stroke-width="0.5"/>
+      <line x1="250" y1="52" x2="455" y2="52" stroke="var(--diag-arrow)" stroke-width="0.5"/>
+      <line x1="455" y1="52" x2="665" y2="52" stroke="var(--diag-arrow)" stroke-width="0.5"/>
+
+    </svg>
+  </div>
+</div></section>
+
+<section class="sec"><div class="w">
+  <div class="sec-t">What it does</div>
+  <div class="feat-grid">
+    <div class="feat"><div class="feat-n">6 analysis templates</div><div class="feat-d">Financial, legal, medical, academic, executive, general. Each sends a different system prompt and expects a different JSON schema back.</div></div>
+    <div class="feat"><div class="feat-n">Version comparison</div><div class="feat-d">Upload two versions of a document. Returns a structured diff with each change rated by significance.</div></div>
+    <div class="feat"><div class="feat-n">Local library</div><div class="feat-d">Every analysis saved on-device in AsyncStorage. Full-text searchable. Nothing leaves your phone.</div></div>
+    <div class="feat"><div class="feat-n">Auto-detect</div><div class="feat-d">Keyword scoring on the first few pages suggests the right template. Financial terms → financial template.</div></div>
+  </div>
+</div></section>
+
+<section class="sec" id="pricing"><div class="w">
+  <div class="sec-t">Pricing</div>
+  <div class="sec-d">Free tier works immediately. No account.</div>
+  <div class="price-row">
+    <div class="pc"><div class="pc-n">Free</div><div class="pc-p">$0</div><div class="pc-per">No account needed</div><div class="pc-m mono">Gemini Flash</div><ul class="pc-l"><li>5 docs/session</li><li>General + Academic</li><li>Library + export</li></ul><a href="https://apps.apple.com/app/pdf-summary" class="pc-b pc-bo">Get started</a></div>
+    <div class="pc pc--a"><div class="pc-n">Pro</div><div class="pc-p">$9</div><div class="pc-per">/month</div><div class="pc-m mono">Gemini Pro</div><ul class="pc-l"><li>Unlimited docs</li><li>All 6 templates</li><li>Version diff</li><li>Cross-session search</li></ul><button class="pc-b pc-bf">Upgrade</button></div>
+    <div class="pc"><div class="pc-n">Enterprise</div><div class="pc-p">$25</div><div class="pc-per">/month</div><div class="pc-m mono">Claude Opus</div><ul class="pc-l"><li>Claude Opus</li><li>Custom templates</li><li>Batch + API</li></ul><button class="pc-b pc-bo">Contact</button></div>
+  </div>
+</div></section>
+
+<div style="text-align:center;padding:20px;font-size:11px;color:var(--text3);background:var(--bg2)">
+Documents processed on-device. Sent directly to Claude or Gemini. Nothing stored on our servers.
+</div>
+
+<footer><div class="f-in w"><div>© 2026 PDF Summary</div><div class="f-r"><a href="/privacy.html">Privacy</a><a href="mailto:hello@pdfsummary.app">Contact</a></div></div></footer>
+
+<script>
+function toggleTheme(){var h=document.documentElement,n=h.getAttribute('data-theme')==='dark'?'light':'dark';h.setAttribute('data-theme',n);document.getElementById('themeBtn').textContent=n==='dark'?'☀':'☾';try{localStorage.setItem('theme',n)}catch(e){}}
+try{var s=localStorage.getItem('theme');if(s){document.documentElement.setAttribute('data-theme',s);if(s==='dark')document.getElementById('themeBtn').textContent='☀'}else if(matchMedia('(prefers-color-scheme:dark)').matches){document.documentElement.setAttribute('data-theme','dark');document.getElementById('themeBtn').textContent='☀'}}catch(e){}
+</script>
+</body>
+</html>
